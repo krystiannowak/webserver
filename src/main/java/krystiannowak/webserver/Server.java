@@ -4,7 +4,7 @@ package krystiannowak.webserver;
  * @author krystiannowak
  *
  */
-public class Server {
+public final class Server {
 
     private Server() {
     }
