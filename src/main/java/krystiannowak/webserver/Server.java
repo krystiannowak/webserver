@@ -6,6 +6,9 @@ package krystiannowak.webserver;
  */
 public class Server {
 
+    private Server() {
+    }
+
     /**
      * Main entry point to the server executable.
      *
