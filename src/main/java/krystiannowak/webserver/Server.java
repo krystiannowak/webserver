@@ -6,6 +6,9 @@ package krystiannowak.webserver;
  */
 public final class Server {
 
+    /**
+     * No instantiation possible.
+     */
     private Server() {
     }
 
