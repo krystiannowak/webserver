@@ -14,7 +14,32 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
+		<executable.jar.name>${project.build.finalName}-jar-with-dependencies.jar</executable.jar.name>
+		<slf4j.version>1.7.13</slf4j.version>
 	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>19.0</version>
+		</dependency>
+		<dependency>
+			<groupId>io.reactivex</groupId>
+			<artifactId>rxjava</artifactId>
+			<version>1.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>${slf4j.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<version>${slf4j.version}</version>
+		</dependency>
+	</dependencies>
 
 	<build>
 		<plugins>
@@ -25,15 +50,26 @@
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
+				<artifactId>maven-assembly-plugin</artifactId>
 				<version>2.6</version>
 				<configuration>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
 					<archive>
 						<manifest>
 							<mainClass>krystiannowak.webserver.Server</mainClass>
 						</manifest>
 					</archive>
 				</configuration>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
@@ -82,14 +118,17 @@
 				<configuration>
 					<imageName>webserver</imageName>
 					<baseImage>java:openjdk-8-jre</baseImage>
-					<entryPoint>["java", "-jar", "/${project.build.finalName}.jar"]</entryPoint>
+					<entryPoint>["java", "-jar", "/${executable.jar.name}"]</entryPoint>
 					<resources>
 						<resource>
 							<targetPath>/</targetPath>
 							<directory>${project.build.directory}</directory>
-							<include>${project.build.finalName}.jar</include>
+							<include>${executable.jar.name}</include>
 						</resource>
 					</resources>
+					<exposes>
+						<expose>31337</expose>
+					</exposes>
 				</configuration>
 			</plugin>
 		</plugins>
