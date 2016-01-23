@@ -3,7 +3,8 @@ package krystiannowak.webserver;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.Charset;
+
+import com.google.common.base.Charsets;
 
 /**
  * Writes responses to output stream.
@@ -38,7 +39,7 @@ public class ResponseWriter implements Closeable {
      */
     public final void write(final Response response) throws IOException {
         String stringRepresentation = response.toString();
-        byte[] data = stringRepresentation.getBytes(Charset.forName("UTF-8"));
+        byte[] data = stringRepresentation.getBytes(Charsets.UTF_8);
         os.write(data);
     }
 
