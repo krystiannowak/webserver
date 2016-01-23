@@ -66,9 +66,10 @@ public final class Server {
             }
         });
 
-        Observable.create(subscriber -> {
+        Observable.<Socket>create(subscriber -> {
             try {
                 final int port = DEFAULT_PORT_NUMBER;
+
                 final ServerSocket serverSocket = new ServerSocket(port);
                 subscriber.add(Subscriptions.create(() -> {
                     try {
@@ -94,17 +95,16 @@ public final class Server {
                 subscriber.onError(e);
             }
         }).flatMap(socket -> {
-            LOG.debug("receiving request from {}", socket);
-            try {
-                return Observable.just("hello world");
-            } catch (Exception e) {
-                return Observable.error(e);
-            }
-        }).observeOn(scheduler).subscribe(result -> {
-            LOG.info(result);
+            LOG.info("receiving connection on a socket {}", socket);
+            return Connections.connection(socket);
+        }).flatMap(connection -> {
+            return Connections.handle(connection);
+        }).observeOn(scheduler).subscribe(message -> {
+            LOG.info(message.toString());
         }, t -> {
             LOG.error("an error occured", t);
         });
+
     }
 
 }
