@@ -20,11 +20,12 @@ public final class Connections {
     }
 
     /**
-     * Creates an Observable of HttpConnection out of the given socket.
+     * Creates an {@link Observable} of {@link HttpConnection} out of the given
+     * socket.
      *
      * @param socket
      *            the socket to create connection for.
-     * @return the observable of connection
+     * @return an {@link Observable} of {@link HTTPConnection}
      */
     public static Observable<HttpConnection> connection(final Socket socket) {
         try {
@@ -36,11 +37,12 @@ public final class Connections {
     }
 
     /**
-     * Handles given connection and emits messages of this handling.
+     * Handles given connection and emits {@link Message}s of this handling.
      *
      * @param connection
-     *            the connection to handle
-     * @return the observable of messages emitted during handling the connection
+     *            an {@link HTTPConnection} to handle
+     * @return an {@link Observable} of {@link Message}s emitted during handling
+     *         the {@link HTTPConnection}
      */
     public static Observable<Message> handle(final HttpConnection connection) {
         return new ConnectionHandler().handle(connection);

@@ -3,7 +3,8 @@ package krystiannowak.webserver;
 import java.util.Optional;
 
 /**
- * Main handler to deal with requests and (if applicable) generate responses.
+ * Main handler to deal with {@link Request}s and (if applicable) generate
+ * {@link Response}s.
  *
  * @author krystiannowak
  *
@@ -11,13 +12,14 @@ import java.util.Optional;
 public interface RequestHandler {
 
     /**
-     * Handles given request and (if applicable) generates a response
-     * accordingly. In case the response is not generated this should normally
-     * mean the communication is to be terminated.
+     * Handles given {@link Request} and (if applicable) generates a
+     * {@link Response} accordingly. In case the {@link Response} is not
+     * generated this should normally mean the communication is to be
+     * terminated.
      *
      * @param request
-     *            a request to be handled
-     * @return an optional response
+     *            a {@link Request} to be handled
+     * @return an {@link Optional} {@link Response}
      */
     Optional<Response> handle(Request request);
 

@@ -5,7 +5,7 @@ import java.io.InputStream;
 import rx.Observable;
 
 /**
- * A parser to create Requests out of an input stream.
+ * A parser to create {@link Request}s out of an {@link InputStream}.
  *
  * @author krystiannowak
  *
@@ -13,11 +13,11 @@ import rx.Observable;
 public interface RequestParser {
 
     /**
-     * Generates Request objects from the input stream given.
+     * Generates {@link Request} objects from the {@link InputStream} given.
      *
      * @param is
-     *            the input stream
-     * @return an Observable emitting parsed Requests
+     *            the {@link InputStream}
+     * @return an {@link Observable} emitting parsed {@link Request}s
      */
     Observable<Request> parse(InputStream is);
 

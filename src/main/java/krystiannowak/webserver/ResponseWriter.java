@@ -3,11 +3,10 @@ package krystiannowak.webserver;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.OutputStream;
-
-import com.google.common.base.Charsets;
+import java.nio.charset.StandardCharsets;
 
 /**
- * Writes responses to output stream.
+ * Writes {@link Response}s to an {@link OutputStream}.
  *
  * @author krystiannowak
  *
@@ -15,7 +14,7 @@ import com.google.common.base.Charsets;
 public class ResponseWriter implements Closeable {
 
     /**
-     * An output stream to write responses to.
+     * An {@link OutputStream} to write {@link Response}s to.
      */
     private final OutputStream os;
 
@@ -23,23 +22,24 @@ public class ResponseWriter implements Closeable {
      * Creates the writer.
      *
      * @param outputStream
-     *            the output stream for responses
+     *            the {@link OutputStream} for {@link Response}s
      */
     public ResponseWriter(final OutputStream outputStream) {
         this.os = outputStream;
     }
 
     /**
-     * Writes the response given to the output stream.
+     * Writes the {@link Response} given to the {@link OutputStream}.
      *
      * @param response
-     *            the response to write
+     *            the {@link Response} to write
      * @throws IOException
      *             if an I/O error occurs
      */
     public final void write(final Response response) throws IOException {
         String stringRepresentation = response.toString();
-        byte[] data = stringRepresentation.getBytes(Charsets.UTF_8);
+        byte[] data = stringRepresentation
+                .getBytes(StandardCharsets.ISO_8859_1);
         os.write(data);
     }
 

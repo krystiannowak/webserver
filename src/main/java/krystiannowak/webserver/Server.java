@@ -24,7 +24,7 @@ import rx.subscriptions.Subscriptions;
 public final class Server {
 
     /**
-     * Static logger for main class.
+     * Static {@link Logger} for main class.
      */
     private static final Logger LOG = LoggerFactory.getLogger(Server.class);
 
