@@ -79,13 +79,25 @@ public class DefaultResponse implements Response {
     }
 
     /**
-     * Setting HTTP headers. Will overwrite any previously headers set.s
+     * Sets HTTP headers. Will overwrite any previously headers set.s
      *
      * @param headers
      *            the HTTP headers to set.
      */
     public final void setHeaders(final Map<String, String> headers) {
         this.headers = headers;
+    }
+
+    /**
+     * Puts single HTTP header.
+     *
+     * @param name
+     *            HTTP header name to put
+     * @param value
+     *            HTTP header value to put
+     */
+    public final void putHeader(final String name, final String value) {
+        headers.put(name, value);
     }
 
     @Override

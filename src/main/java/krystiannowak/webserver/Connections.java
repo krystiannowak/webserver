@@ -1,5 +1,6 @@
 package krystiannowak.webserver;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 
@@ -41,10 +42,13 @@ public final class Connections {
      *
      * @param connection
      *            an {@link HTTPConnection} to handle
+     * @param documentRoot
+     *            the document root to handle files and folders
      * @return an {@link Observable} of {@link Message}s emitted during handling
      *         the {@link HTTPConnection}
      */
-    public static Observable<Message> handle(final HttpConnection connection) {
-        return new ConnectionHandler().handle(connection);
+    public static Observable<Message> handle(final HttpConnection connection,
+            final File documentRoot) {
+        return new ConnectionHandler(documentRoot).handle(connection);
     }
 }

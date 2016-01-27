@@ -2,6 +2,9 @@ package krystiannowak.webserver;
 
 import static krystiannowak.webserver.SimpleStringSerialization.serialize;
 
+import com.google.common.net.HttpHeaders;
+import com.google.common.net.MediaType;
+
 /**
  * A class to support {@link Response}s which body is just a simple
  * {@link String}.
@@ -25,5 +28,7 @@ public class StringResponse extends DefaultResponse {
             final String messageBody) {
         super(statusCode, reasonPhrase);
         setMessageBody(serialize(messageBody));
+        putHeader(HttpHeaders.CONTENT_TYPE,
+                MediaType.PLAIN_TEXT_UTF_8.withoutParameters().toString());
     }
 }

@@ -1,5 +1,6 @@
 package krystiannowak.webserver;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -29,6 +30,11 @@ public final class Server {
     private static final Logger LOG = LoggerFactory.getLogger(Server.class);
 
     /**
+     * The default document root to look files and directories for.
+     */
+    private static final String DEFAULT_DOCUMENT_ROOT = "www";
+
+    /**
      * Default number of threads (if not overridden from configuration).
      */
     private static final int DEFAULT_NUMBER_OF_THREADS = 8;
@@ -52,6 +58,10 @@ public final class Server {
      *            arguments (not used)
      */
     public static void main(final String[] args) {
+
+        final File documentRoot = new File(DEFAULT_DOCUMENT_ROOT)
+                .getAbsoluteFile();
+        assertDocumentRoot(documentRoot);
 
         final int numberOfThreads = DEFAULT_NUMBER_OF_THREADS;
 
@@ -98,13 +108,51 @@ public final class Server {
             LOG.info("receiving connection on a socket {}", socket);
             return Connections.connection(socket);
         }).flatMap(connection -> {
-            return Connections.handle(connection);
+            return Connections.handle(connection, documentRoot);
         }).observeOn(scheduler).subscribe(message -> {
             LOG.info(message.toString());
         }, t -> {
             LOG.error("an error occured", t);
         });
 
+    }
+
+    /**
+     * Checks whether the document root exists and is generally usable.
+     *
+     * @param documentRoot
+     *            the document root to check
+     */
+    private static void assertDocumentRoot(final File documentRoot) {
+        if (!documentRoot.exists()) {
+            exitWithDocumentRootError("docroot '{}' does not exist",
+                    documentRoot);
+        }
+
+        if (!documentRoot.isDirectory()) {
+            exitWithDocumentRootError("docroot '{}' is not a directory",
+                    documentRoot);
+        }
+
+        if (!documentRoot.canRead()) {
+            exitWithDocumentRootError("docroot '{}' is not readable",
+                    documentRoot);
+        }
+
+    }
+
+    /**
+     * Exists the process logging error with document root context.
+     *
+     * @param message
+     *            message to log with document root context
+     * @param documentRoot
+     *            document root context to use in the log
+     */
+    private static void exitWithDocumentRootError(final String message,
+            final File documentRoot) {
+        LOG.error(message, documentRoot);
+        System.exit(1);
     }
 
 }

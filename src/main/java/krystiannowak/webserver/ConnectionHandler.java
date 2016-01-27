@@ -1,5 +1,6 @@
 package krystiannowak.webserver;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -17,6 +18,21 @@ import rx.Observable;
  *
  */
 public class ConnectionHandler {
+
+    /**
+     * The document root to look files and directories for.
+     */
+    private final File documentRoot;
+
+    /**
+     * Instantiates this handler.
+     *
+     * @param documentRoot
+     *            the document root to look files and directories for
+     */
+    public ConnectionHandler(final File documentRoot) {
+        this.documentRoot = documentRoot;
+    }
 
     /**
      * Instance logger.
@@ -38,8 +54,8 @@ public class ConnectionHandler {
         RequestParser parser = new AntlrRequestParser();
 
         RequestDispatcher dispatcher = new RequestDispatcher();
-        dispatcher.setHandler(GetRequestHandler.METHOD,
-                new GetRequestHandler());
+        dispatcher.setHandler(FilesystemGetRequestHandler.METHOD,
+                new FilesystemGetRequestHandler(documentRoot));
 
         return parser.parse(is).flatMap(request -> {
             Optional<Response> responseOpt = dispatcher.handle(request);

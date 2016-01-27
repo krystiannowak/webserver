@@ -1,8 +1,8 @@
 package krystiannowak.webserver;
 
-import static java.net.HttpURLConnection.HTTP_BAD_METHOD;
-import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
-import static java.net.HttpURLConnection.HTTP_VERSION;
+import static krystiannowak.webserver.Responses.badMethod;
+import static krystiannowak.webserver.Responses.badRequest;
+import static krystiannowak.webserver.Responses.version;
 
 import java.util.Map;
 import java.util.Optional;
@@ -44,42 +44,20 @@ public class RequestDispatcher implements RequestHandler {
                 || request.getHttpVersion().equals("HTTP/1.0")
                 || !request.getHttpVersion().startsWith("HTTP/1.")) {
 
-            return stringResponse(HTTP_VERSION, "HTTP Version Not Supported",
-                    "The HTTP version provided in the quest is not supported: "
-                            + request.getHttpVersion());
-
+            return Optional.of(version(request.getHttpVersion()));
         }
 
         if (request.getMethod() == null || request.getMethod().isEmpty()) {
-            return stringResponse(HTTP_BAD_REQUEST, "Bad Request",
-                    "No method is set");
+            return Optional.of(badRequest("No method is set"));
 
         }
 
         RequestHandler methodHandler = methodToHandler.get(request.getMethod());
         if (methodHandler == null) {
-            return stringResponse(HTTP_BAD_METHOD, "Method Not Allowed",
-                    "Method is not allowed: " + request.getMethod());
+            return Optional.of(badMethod(request.getMethod()));
         }
 
         return methodHandler.handle(request);
-    }
-
-    /**
-     * A handy tool for short {@link StringResponse} creation.
-     *
-     * @param statusCode
-     *            the HTTP status code
-     * @param reasonPhrase
-     *            the HTTP reason phrase for the code given
-     * @param messageBody
-     *            the textual message body
-     * @return {@link Optional} of {@link StringResponse} created.
-     */
-    private Optional<Response> stringResponse(final int statusCode,
-            final String reasonPhrase, final String messageBody) {
-        return Optional
-                .of(new StringResponse(statusCode, reasonPhrase, messageBody));
     }
 
 }

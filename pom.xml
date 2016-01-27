@@ -158,6 +158,10 @@
 							<directory>${project.build.directory}</directory>
 							<include>${executable.jar.name}</include>
 						</resource>
+						<resource>
+							<targetPath>/www</targetPath>
+							<directory>www</directory>
+						</resource>
 					</resources>
 					<exposes>
 						<expose>31337</expose>
