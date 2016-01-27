@@ -1,9 +1,10 @@
 package krystiannowak.webserver;
 
+import static krystiannowak.webserver.SimpleStringSerialization.deserialize;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -76,8 +77,7 @@ public class AntlrRequestParser implements RequestParser {
         try {
             byte[] buffer = readAvailable(is);
 
-            log.info("buffering received data: {}",
-                    new String(buffer, StandardCharsets.ISO_8859_1));
+            log.info("buffering received data: {}", deserialize(buffer));
 
             CharStream charStream = new ANTLRInputStream(
                     new ByteArrayInputStream(buffer));

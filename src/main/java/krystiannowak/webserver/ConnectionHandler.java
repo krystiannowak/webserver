@@ -3,6 +3,7 @@ package krystiannowak.webserver;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.HttpURLConnection;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -40,7 +41,8 @@ public class ConnectionHandler {
         RequestHandler handler = new RequestHandler() {
             @Override
             public Optional<Response> handle(final Request request) {
-                return Optional.of(new Response());
+                return Optional.of(new StringResponse(HttpURLConnection.HTTP_OK,
+                        "OK", "Hello world"));
             }
         };
 
@@ -51,8 +53,7 @@ public class ConnectionHandler {
                     Response response = responseOpt.get();
                     log.info("about to write a response");
                     writer.write(response);
-                    return Observable.from(new Message[] {
-                            request, response });
+                    return Observable.from(new Message[] {request, response});
                 } catch (IOException e) {
                     return Observable.error(e);
                 }
