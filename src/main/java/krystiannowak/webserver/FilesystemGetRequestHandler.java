@@ -8,6 +8,9 @@ import java.io.File;
 import java.net.URI;
 import java.util.Optional;
 
+import com.google.common.net.HttpHeaders;
+import com.google.common.net.MediaType;
+
 /**
  * A {@link RequestDispatcher} for HTTP method GET.
  *
@@ -65,8 +68,13 @@ public class FilesystemGetRequestHandler implements RequestHandler {
         }
 
         if (resource.isDirectory()) {
-            return Optional.of(new StringResponse(HTTP_OK, "OK",
-                    "we have a directory here: " + requestUri));
+            IndexHtmlGenerator indexGenerator = new IndexHtmlGenerator(
+                    documentRoot, path, Optional.empty());
+            DefaultResponse response = new StringResponse(HTTP_OK, "OK",
+                    indexGenerator.getHtml());
+            response.putHeader(HttpHeaders.CONTENT_TYPE,
+                    MediaType.HTML_UTF_8.toString());
+            return Optional.of(response);
         }
 
         return Optional.of(forbidden(path));

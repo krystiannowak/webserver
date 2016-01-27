@@ -25,14 +25,14 @@ import rx.subscriptions.Subscriptions;
 public final class Server {
 
     /**
+     * The default document root to look files and directories for.
+     */
+    public static final String DEFAULT_DOCUMENT_ROOT = "www";
+
+    /**
      * Static {@link Logger} for main class.
      */
     private static final Logger LOG = LoggerFactory.getLogger(Server.class);
-
-    /**
-     * The default document root to look files and directories for.
-     */
-    private static final String DEFAULT_DOCUMENT_ROOT = "www";
 
     /**
      * Default number of threads (if not overridden from configuration).
@@ -80,6 +80,8 @@ public final class Server {
             try {
                 final int port = DEFAULT_PORT_NUMBER;
 
+                LOG.info("new server subscriber");
+
                 final ServerSocket serverSocket = new ServerSocket(port);
                 subscriber.add(Subscriptions.create(() -> {
                     try {
@@ -93,6 +95,7 @@ public final class Server {
                 while (!subscriber.isUnsubscribed()) {
                     try {
                         Socket socket = serverSocket.accept();
+                        LOG.info("new socket connection accepted");
                         subscriber.onNext(socket);
                     } catch (SocketTimeoutException e) {
                         LOG.warn("timeout while accepting socket connection",

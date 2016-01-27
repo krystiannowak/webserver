@@ -28,6 +28,7 @@ import krystiannowak.webserver.gen.HttpRequestParser.ConnectionContext;
 import krystiannowak.webserver.gen.HttpRequestParser.HostContext;
 import krystiannowak.webserver.gen.HttpRequestParser.HttpVersionContext;
 import krystiannowak.webserver.gen.HttpRequestParser.MethodContext;
+import krystiannowak.webserver.gen.HttpRequestParser.RefererContext;
 import krystiannowak.webserver.gen.HttpRequestParser.RequestURIContext;
 import krystiannowak.webserver.gen.HttpRequestParser.UserAgentContext;
 import rx.Observable;
@@ -53,22 +54,44 @@ public class AntlrRequestParser implements RequestParser {
      * is not closed after data extraction).
      *
      * @param is
-     *            the input stream to extract bytes from
+     *            the {@link InputStream} to extract bytes from
      * @return the extracted bytes of data
      * @throws IOException
      *             in case an I/O error occurs
      */
     private byte[] readAvailable(final InputStream is) throws IOException {
 
-        byte[] result = new byte[0];
+        byte[] result = readSome(is);
         int availableEstimate = 0;
         while ((availableEstimate = is.available()) > 0) {
             byte[] buffer = new byte[availableEstimate];
             int readLength = is.read(buffer, 0, buffer.length);
-            result = Bytes.concat(result, Arrays.copyOf(buffer, readLength));
+            if (readLength > 0) {
+                result = Bytes.concat(result,
+                        Arrays.copyOf(buffer, readLength));
+            }
         }
 
         return result;
+    }
+
+    /**
+     * Reads some symbolic amount of data blocking on read.
+     *
+     * @param is
+     *            the {@link InputStream} to extract bytes from
+     * @return the extracted bytes of data
+     * @throws IOException
+     *             in case an I/O error occurs
+     */
+    private byte[] readSome(final InputStream is) throws IOException {
+        byte[] buffer = new byte[1];
+        int readLength = is.read(buffer, 0, buffer.length);
+        if (readLength > 0) {
+            return Arrays.copyOf(buffer, readLength);
+        } else {
+            return new byte[0];
+        }
     }
 
     @Override
@@ -76,86 +99,96 @@ public class AntlrRequestParser implements RequestParser {
 
         try {
             byte[] buffer = readAvailable(is);
+            if (buffer.length > 0) {
+                log.info("buffering received data: {}", deserialize(buffer));
 
-            log.info("buffering received data: {}", deserialize(buffer));
+                CharStream charStream = new ANTLRInputStream(
+                        new ByteArrayInputStream(buffer));
+                HttpRequestLexer lexer = new HttpRequestLexer(charStream);
+                CommonTokenStream tokens = new CommonTokenStream(lexer);
+                HttpRequestParser parser = new HttpRequestParser(tokens);
+                ParseTree tree = parser.request();
+                ParseTreeWalker walker = new ParseTreeWalker();
 
-            CharStream charStream = new ANTLRInputStream(
-                    new ByteArrayInputStream(buffer));
-            HttpRequestLexer lexer = new HttpRequestLexer(charStream);
-            CommonTokenStream tokens = new CommonTokenStream(lexer);
-            HttpRequestParser parser = new HttpRequestParser(tokens);
-            ParseTree tree = parser.request();
-            ParseTreeWalker walker = new ParseTreeWalker();
+                Request request = new Request();
+                walker.walk(new HttpRequestBaseListener() {
 
-            Request request = new Request();
-            walker.walk(new HttpRequestBaseListener() {
-
-                @Override
-                public void enterMethod(final MethodContext ctx) {
-                    request.setMethod(ctx.getText());
-                }
-
-                @Override
-                public void enterRequestURI(final RequestURIContext ctx) {
-                    request.setRequestUri(ctx.getText());
-                }
-
-                @Override
-                public void enterHttpVersion(final HttpVersionContext ctx) {
-                    request.setHttpVersion(ctx.getText());
-                }
-
-                @Override
-                public void enterHost(final HostContext ctx) {
-                    extractHeaderValue(ctx)
-                            .ifPresent(val -> request.setHost(val));
-                }
-
-                @Override
-                public void enterUserAgent(final UserAgentContext ctx) {
-                    extractHeaderValue(ctx)
-                            .ifPresent(val -> request.setUserAgent(val));
-                }
-
-                @Override
-                public void enterAccept(final AcceptContext ctx) {
-                    extractHeaderValue(ctx)
-                            .ifPresent(val -> request.setAccept(val));
-                }
-
-                @Override
-                public void enterAcceptLanguage(
-                        final AcceptLanguageContext ctx) {
-                    extractHeaderValue(ctx)
-                            .ifPresent(val -> request.setAcceptLanguage(val));
-                }
-
-                @Override
-                public void enterAcceptEncoding(
-                        final AcceptEncodingContext ctx) {
-                    extractHeaderValue(ctx)
-                            .ifPresent(val -> request.setAcceptEncoding(val));
-                }
-
-                @Override
-                public void enterConnection(final ConnectionContext ctx) {
-                    extractHeaderValue(ctx)
-                            .ifPresent(val -> request.setConnection(val));
-                }
-
-                private Optional<String> extractHeaderValue(
-                        final ParseTree tree) {
-                    if (tree.getChildCount() >= 2) {
-                        return Optional.of(tree.getChild(1).getText().trim());
-                    } else {
-                        return Optional.empty();
+                    @Override
+                    public void enterMethod(final MethodContext ctx) {
+                        request.setMethod(ctx.getText());
                     }
-                }
 
-            }, tree);
+                    @Override
+                    public void enterRequestURI(final RequestURIContext ctx) {
+                        request.setRequestUri(ctx.getText());
+                    }
 
-            log.info("emitting parsed requst = {}", request);
-            return Observable.just(request);
+                    @Override
+                    public void enterHttpVersion(final HttpVersionContext ctx) {
+                        request.setHttpVersion(ctx.getText());
+                    }
+
+                    @Override
+                    public void enterHost(final HostContext ctx) {
+                        extractHeaderValue(ctx)
+                                .ifPresent(val -> request.setHost(val));
+                    }
+
+                    @Override
+                    public void enterReferer(final RefererContext ctx) {
+                        extractHeaderValue(ctx)
+                                .ifPresent(val -> request.setReferer(val));
+                    }
+
+                    @Override
+                    public void enterUserAgent(final UserAgentContext ctx) {
+                        extractHeaderValue(ctx)
+                                .ifPresent(val -> request.setUserAgent(val));
+                    }
+
+                    @Override
+                    public void enterAccept(final AcceptContext ctx) {
+                        extractHeaderValue(ctx)
+                                .ifPresent(val -> request.setAccept(val));
+                    }
+
+                    @Override
+                    public void enterAcceptLanguage(
+                            final AcceptLanguageContext ctx) {
+                        extractHeaderValue(ctx).ifPresent(
+                                val -> request.setAcceptLanguage(val));
+                    }
+
+                    @Override
+                    public void enterAcceptEncoding(
+                            final AcceptEncodingContext ctx) {
+                        extractHeaderValue(ctx).ifPresent(
+                                val -> request.setAcceptEncoding(val));
+                    }
+
+                    @Override
+                    public void enterConnection(final ConnectionContext ctx) {
+                        extractHeaderValue(ctx)
+                                .ifPresent(val -> request.setConnection(val));
+                    }
+
+                    private Optional<String> extractHeaderValue(
+                            final ParseTree tree) {
+                        if (tree.getChildCount() >= 2) {
+                            return Optional
+                                    .of(tree.getChild(1).getText().trim());
+                        } else {
+                            return Optional.empty();
+                        }
+                    }
+
+                }, tree);
+
+                log.info("emitting parsed requst = {}", request);
+                return Observable.just(request);
+            } else {
+                return Observable.empty();
+            }
         } catch (IOException e) {
             return Observable.error(e);
         }

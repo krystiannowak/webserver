@@ -9,6 +9,8 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Throwables;
+
 import rx.Observable;
 
 /**
@@ -48,6 +50,8 @@ public class ConnectionHandler {
      */
     public final Observable<Message> handle(final HttpConnection connection) {
 
+        log.info("handling connection");
+
         InputStream is = connection.getInputStream();
         OutputStream out = connection.getOutputStream();
         ResponseWriter writer = new ResponseWriter(out);
@@ -58,27 +62,29 @@ public class ConnectionHandler {
                 new FilesystemGetRequestHandler(documentRoot));
 
         return parser.parse(is).flatMap(request -> {
+            log.info("on next request parsed");
             Optional<Response> responseOpt = dispatcher.handle(request);
             if (responseOpt.isPresent()) {
+                Response response = responseOpt.get();
+                log.info("about to write a response");
                 try {
-                    Response response = responseOpt.get();
-                    log.info("about to write a response");
                     writer.write(response);
                     return Observable.from(new Message[] {request, response});
                 } catch (IOException e) {
                     return Observable.error(e);
                 }
             } else {
-                log.info("closing the connection");
-                try {
-                    writer.close();
-                    out.close();
-                    is.close();
-                    connection.close();
-                    return Observable.just(request);
-                } catch (IOException e) {
-                    return Observable.error(e);
-                }
+                return Observable.empty();
+            }
+        }).doOnCompleted(() -> {
+            try {
+                log.info("closing connection");
+                writer.close();
+                out.close();
+                is.close();
+                connection.close();
+            } catch (IOException e) {
+                throw Throwables.propagate(e);
             }
         });
     }

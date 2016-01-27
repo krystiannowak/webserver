@@ -50,6 +50,7 @@ requestHeader
 	| acceptEncoding
 	| acceptLanguage
 	| host
+	| referer
 	| userAgent
 	;
 
@@ -80,6 +81,10 @@ acceptLanguage
 host
 	: 'Host:' fieldValue
 	; 
+
+referer
+	: 'Referer:' fieldValue
+	;
 
 userAgent
 	: 'User-Agent:' fieldValue

@@ -39,6 +39,13 @@ public class Request implements Message {
     private String host;
 
     /**
+     * Referer header as per
+     * <a href="https://tools.ietf.org/html/rfc2616#section-14.36">https://tools
+     * .ietf.org/html/rfc2616#section-14.36</a>.
+     */
+    private String referer;
+
+    /**
      * User-Agent header as per
      * <a href="https://tools.ietf.org/html/rfc2616#section-14.43">https://tools
      * .ietf.org/html/rfc2616#section-14.43</a>.
@@ -147,6 +154,25 @@ public class Request implements Message {
      */
     public final void setHost(final String host) {
         this.host = host;
+    }
+
+    /**
+     * Referer header getter.
+     *
+     * @return Referer header value
+     */
+    public final String getReferer() {
+        return referer;
+    }
+
+    /**
+     * Referer header setter.
+     *
+     * @param referer
+     *            Referer header value
+     */
+    public final void setReferer(final String referer) {
+        this.referer = referer;
     }
 
     /**

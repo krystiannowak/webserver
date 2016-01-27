@@ -29,6 +29,6 @@ public class StringResponse extends DefaultResponse {
         super(statusCode, reasonPhrase);
         setMessageBody(serialize(messageBody));
         putHeader(HttpHeaders.CONTENT_TYPE,
-                MediaType.PLAIN_TEXT_UTF_8.withoutParameters().toString());
+                MediaType.PLAIN_TEXT_UTF_8.toString());
     }
 }

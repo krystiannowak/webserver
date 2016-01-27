@@ -15,7 +15,7 @@ public final class SimpleStringSerialization {
     /**
      * Default charset chosen for simplicity.
      */
-    private static final Charset DEFAULT_CHARSET = StandardCharsets.ISO_8859_1;
+    private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
     /**
      * No instantiation possible.
