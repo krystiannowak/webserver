@@ -6,6 +6,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import com.google.common.net.HttpHeaders;
 import com.google.common.primitives.Bytes;
 
 /**
@@ -120,7 +121,9 @@ public class ResponseWriter implements Closeable {
          * Builds HTTP request header lines as per
          * <a href="https://tools.ietf.org/html/rfc2616#section-6">https://tools
          * .ietf.org/html/rfc2616#section-6</a> additionally adding
-         * <code>Content-Length</code> HTTP header with a value of content
+         * <code>Content-Length</code> HTTP header according to
+         * <a href="https://tools.ietf.org/html/rfc2616#section-14.13">https://
+         * tools.ietf.org/html/rfc2616#section-14.13</a> with a value of content
          * length if present.
          *
          * @param response
@@ -129,9 +132,8 @@ public class ResponseWriter implements Closeable {
         private void appendHeaderLines(final Response response) {
             response.getHeaders()
                     .forEach((name, value) -> appendHeader(name, value));
-            response.getContentLength()
-                    .ifPresent(contentLength -> appendHeader("Content-Length",
-                            contentLength));
+            response.getContentLength().ifPresent(contentLength -> appendHeader(
+                    HttpHeaders.CONTENT_LENGTH, contentLength));
         }
 
         /**

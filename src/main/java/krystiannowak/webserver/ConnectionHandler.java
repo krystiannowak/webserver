@@ -3,7 +3,6 @@ package krystiannowak.webserver;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.HttpURLConnection;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -38,16 +37,12 @@ public class ConnectionHandler {
         ResponseWriter writer = new ResponseWriter(out);
         RequestParser parser = new AntlrRequestParser();
 
-        RequestHandler handler = new RequestHandler() {
-            @Override
-            public Optional<Response> handle(final Request request) {
-                return Optional.of(new StringResponse(HttpURLConnection.HTTP_OK,
-                        "OK", "Hello world"));
-            }
-        };
+        RequestDispatcher dispatcher = new RequestDispatcher();
+        dispatcher.setHandler(GetRequestHandler.METHOD,
+                new GetRequestHandler());
 
         return parser.parse(is).flatMap(request -> {
-            Optional<Response> responseOpt = handler.handle(request);
+            Optional<Response> responseOpt = dispatcher.handle(request);
             if (responseOpt.isPresent()) {
                 try {
                     Response response = responseOpt.get();

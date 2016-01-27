@@ -1,5 +1,6 @@
 package krystiannowak.webserver;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 
@@ -110,4 +111,12 @@ public class DefaultResponse implements Response {
             return Optional.empty();
         }
     }
+
+    @Override
+    public final String toString() {
+        return "DefaultResponse [statusCode=" + statusCode + ", reasonPhrase="
+                + reasonPhrase + ", headers=" + headers + ", messageBody="
+                + Arrays.toString(messageBody) + "]";
+    }
+
 }

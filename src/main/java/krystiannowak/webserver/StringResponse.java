@@ -16,14 +16,14 @@ public class StringResponse extends DefaultResponse {
      *
      * @param statusCode
      *            the HTTP status code
-     * @param reason
-     *            the HTTP reason for the code given
+     * @param reasonPhrase
+     *            the HTTP reason phrase for the code given
      * @param messageBody
      *            the textual message body
      */
-    protected StringResponse(final int statusCode, final String reason,
+    protected StringResponse(final int statusCode, final String reasonPhrase,
             final String messageBody) {
-        super(statusCode, reason);
+        super(statusCode, reasonPhrase);
         setMessageBody(serialize(messageBody));
     }
 }
