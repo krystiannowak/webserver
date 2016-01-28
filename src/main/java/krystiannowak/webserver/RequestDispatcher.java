@@ -5,7 +5,6 @@ import static krystiannowak.webserver.Responses.badRequest;
 import static krystiannowak.webserver.Responses.version;
 
 import java.util.Map;
-import java.util.Optional;
 
 import com.google.common.collect.Maps;
 
@@ -38,23 +37,23 @@ public class RequestDispatcher implements RequestHandler {
     }
 
     @Override
-    public final Optional<Response> handle(final Request request) {
+    public final Response handle(final Request request) {
 
         if (request.getHttpVersion() == null
                 || request.getHttpVersion().equals("HTTP/1.0")
                 || !request.getHttpVersion().startsWith("HTTP/1.")) {
 
-            return Optional.of(version(request.getHttpVersion()));
+            return version(request.getHttpVersion());
         }
 
         if (request.getMethod() == null || request.getMethod().isEmpty()) {
-            return Optional.of(badRequest("No method is set"));
+            return badRequest("No method is set");
 
         }
 
         RequestHandler methodHandler = methodToHandler.get(request.getMethod());
         if (methodHandler == null) {
-            return Optional.of(badMethod(request.getMethod()));
+            return badMethod(request.getMethod());
         }
 
         return methodHandler.handle(request);

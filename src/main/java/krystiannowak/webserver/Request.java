@@ -270,6 +270,15 @@ public class Request implements Message {
         this.connection = connection;
     }
 
+    /**
+     * Tests if Keep-Alive behaviour is requested.
+     *
+     * @return is Keep-Alive requested
+     */
+    public final boolean isKeepAlive() {
+        return "Keep-Alive".equalsIgnoreCase(getConnection());
+    }
+
     @Override
     public final String toString() {
         return "Request [method=" + method + ", requestUri=" + requestUri

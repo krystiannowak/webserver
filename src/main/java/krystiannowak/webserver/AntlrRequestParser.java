@@ -94,104 +94,125 @@ public class AntlrRequestParser implements RequestParser {
         }
     }
 
+    /**
+     * Converts the binary buffer content into {@link Request}.
+     *
+     * @param buffer
+     *            the buffer to convert from
+     * @return {@link Request} converted from the data given
+     * @throws IOException
+     *             in case an I/O exception occurs
+     */
+    private Request fromBuffer(final byte[] buffer) throws IOException {
+        log.info("buffering received data: {}", deserialize(buffer));
+
+        CharStream charStream = new ANTLRInputStream(
+                new ByteArrayInputStream(buffer));
+        HttpRequestLexer lexer = new HttpRequestLexer(charStream);
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        HttpRequestParser parser = new HttpRequestParser(tokens);
+        ParseTree tree = parser.request();
+        ParseTreeWalker walker = new ParseTreeWalker();
+
+        Request request = new Request();
+        walker.walk(new HttpRequestBaseListener() {
+
+            @Override
+            public void enterMethod(final MethodContext ctx) {
+                request.setMethod(ctx.getText());
+            }
+
+            @Override
+            public void enterRequestURI(final RequestURIContext ctx) {
+                request.setRequestUri(ctx.getText());
+            }
+
+            @Override
+            public void enterHttpVersion(final HttpVersionContext ctx) {
+                request.setHttpVersion(ctx.getText());
+            }
+
+            @Override
+            public void enterHost(final HostContext ctx) {
+                extractHeaderValue(ctx).ifPresent(val -> request.setHost(val));
+            }
+
+            @Override
+            public void enterReferer(final RefererContext ctx) {
+                extractHeaderValue(ctx)
+                        .ifPresent(val -> request.setReferer(val));
+            }
+
+            @Override
+            public void enterUserAgent(final UserAgentContext ctx) {
+                extractHeaderValue(ctx)
+                        .ifPresent(val -> request.setUserAgent(val));
+            }
+
+            @Override
+            public void enterAccept(final AcceptContext ctx) {
+                extractHeaderValue(ctx)
+                        .ifPresent(val -> request.setAccept(val));
+            }
+
+            @Override
+            public void enterAcceptLanguage(final AcceptLanguageContext ctx) {
+                extractHeaderValue(ctx)
+                        .ifPresent(val -> request.setAcceptLanguage(val));
+            }
+
+            @Override
+            public void enterAcceptEncoding(final AcceptEncodingContext ctx) {
+                extractHeaderValue(ctx)
+                        .ifPresent(val -> request.setAcceptEncoding(val));
+            }
+
+            @Override
+            public void enterConnection(final ConnectionContext ctx) {
+                extractHeaderValue(ctx)
+                        .ifPresent(val -> request.setConnection(val));
+            }
+
+            private Optional<String> extractHeaderValue(final ParseTree tree) {
+                if (tree.getChildCount() >= 2) {
+                    return Optional.of(tree.getChild(1).getText().trim());
+                } else {
+                    return Optional.empty();
+                }
+            }
+
+        }, tree);
+        return request;
+    }
+
     @Override
     public final Observable<Request> parse(final InputStream is) {
+        return Observable.create(subscriber -> {
+            try {
+                boolean keepAlive = true;
+                while (keepAlive) {
 
-        try {
-            byte[] buffer = readAvailable(is);
-            if (buffer.length > 0) {
-                log.info("buffering received data: {}", deserialize(buffer));
+                    byte[] buffer = readAvailable(is);
+                    if (buffer.length > 0) {
+                        Request request = fromBuffer(buffer);
+                        log.info("emitting parsed requst = {}", request);
+                        subscriber.onNext(request);
 
-                CharStream charStream = new ANTLRInputStream(
-                        new ByteArrayInputStream(buffer));
-                HttpRequestLexer lexer = new HttpRequestLexer(charStream);
-                CommonTokenStream tokens = new CommonTokenStream(lexer);
-                HttpRequestParser parser = new HttpRequestParser(tokens);
-                ParseTree tree = parser.request();
-                ParseTreeWalker walker = new ParseTreeWalker();
-
-                Request request = new Request();
-                walker.walk(new HttpRequestBaseListener() {
-
-                    @Override
-                    public void enterMethod(final MethodContext ctx) {
-                        request.setMethod(ctx.getText());
-                    }
-
-                    @Override
-                    public void enterRequestURI(final RequestURIContext ctx) {
-                        request.setRequestUri(ctx.getText());
-                    }
-
-                    @Override
-                    public void enterHttpVersion(final HttpVersionContext ctx) {
-                        request.setHttpVersion(ctx.getText());
-                    }
-
-                    @Override
-                    public void enterHost(final HostContext ctx) {
-                        extractHeaderValue(ctx)
-                                .ifPresent(val -> request.setHost(val));
-                    }
-
-                    @Override
-                    public void enterReferer(final RefererContext ctx) {
-                        extractHeaderValue(ctx)
-                                .ifPresent(val -> request.setReferer(val));
-                    }
-
-                    @Override
-                    public void enterUserAgent(final UserAgentContext ctx) {
-                        extractHeaderValue(ctx)
-                                .ifPresent(val -> request.setUserAgent(val));
-                    }
-
-                    @Override
-                    public void enterAccept(final AcceptContext ctx) {
-                        extractHeaderValue(ctx)
-                                .ifPresent(val -> request.setAccept(val));
-                    }
-
-                    @Override
-                    public void enterAcceptLanguage(
-                            final AcceptLanguageContext ctx) {
-                        extractHeaderValue(ctx).ifPresent(
-                                val -> request.setAcceptLanguage(val));
-                    }
-
-                    @Override
-                    public void enterAcceptEncoding(
-                            final AcceptEncodingContext ctx) {
-                        extractHeaderValue(ctx).ifPresent(
-                                val -> request.setAcceptEncoding(val));
-                    }
-
-                    @Override
-                    public void enterConnection(final ConnectionContext ctx) {
-                        extractHeaderValue(ctx)
-                                .ifPresent(val -> request.setConnection(val));
-                    }
-
-                    private Optional<String> extractHeaderValue(
-                            final ParseTree tree) {
-                        if (tree.getChildCount() >= 2) {
-                            return Optional
-                                    .of(tree.getChild(1).getText().trim());
-                        } else {
-                            return Optional.empty();
+                        if (!request.isKeepAlive()) {
+                            keepAlive = false;
                         }
+
+                    } else {
+                        keepAlive = false;
                     }
 
-                }, tree);
-
-                log.info("emitting parsed requst = {}", request);
-                return Observable.just(request);
-            } else {
-                return Observable.empty();
+                }
+            } catch (IOException e) {
+                subscriber.onError(e);
             }
-        } catch (IOException e) {
-            return Observable.error(e);
-        }
+
+            subscriber.onCompleted();
+        });
     }
 
 }

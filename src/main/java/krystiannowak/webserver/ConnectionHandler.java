@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +41,23 @@ public class ConnectionHandler {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     /**
+     * Enriches {@link Response} with proper Keep-Alive HTTP headers if
+     * {@link Request} requested Keep-Alive behaviour.
+     *
+     * @param request
+     *            the {@link Request} to check Keep-Alive behaviour
+     * @param response
+     *            the {@link Response} to set Keep-Alive HTTP headers if needed
+     */
+    private void enrichWithKeepAlive(final Request request,
+            final Response response) {
+        if (request.isKeepAlive()) {
+            response.getHeaders().put("Connection", "Keep-Alive");
+            response.getHeaders().put("Keep-Alive", "timeout=15, max=100");
+        }
+    }
+
+    /**
      * The main method of the handler to deal with the HTTP connection given.
      *
      * @param connection
@@ -63,18 +79,14 @@ public class ConnectionHandler {
 
         return parser.parse(is).flatMap(request -> {
             log.info("on next request parsed");
-            Optional<Response> responseOpt = dispatcher.handle(request);
-            if (responseOpt.isPresent()) {
-                Response response = responseOpt.get();
-                log.info("about to write a response");
-                try {
-                    writer.write(response);
-                    return Observable.from(new Message[] {request, response});
-                } catch (IOException e) {
-                    return Observable.error(e);
-                }
-            } else {
-                return Observable.empty();
+            Response response = dispatcher.handle(request);
+            enrichWithKeepAlive(request, response);
+            log.info("about to write a response");
+            try {
+                writer.write(response);
+                return Observable.from(new Message[] {request, response});
+            } catch (IOException e) {
+                return Observable.error(e);
             }
         }).doOnCompleted(() -> {
             try {
