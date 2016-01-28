@@ -43,7 +43,7 @@ public final class Server {
      * Default port number for the server (if not overridden from
      * configuration).
      */
-    private static final int DEFAULT_PORT_NUMBER = 31337;
+    public static final int DEFAULT_PORT_NUMBER = 31337;
 
     /**
      * No instantiation possible.
