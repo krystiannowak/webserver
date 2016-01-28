@@ -63,8 +63,7 @@ public class FilesystemGetRequestHandler implements RequestHandler {
         }
 
         if (resource.isFile()) {
-            return Optional.of(new StringResponse(HTTP_OK, "OK",
-                    "we have a file here: " + requestUri));
+            return Optional.of(new FileResponse(resource));
         }
 
         if (resource.isDirectory()) {
