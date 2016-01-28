@@ -80,8 +80,6 @@ public final class Server {
             try {
                 final int port = DEFAULT_PORT_NUMBER;
 
-                LOG.info("new server subscriber");
-
                 final ServerSocket serverSocket = new ServerSocket(port);
                 subscriber.add(Subscriptions.create(() -> {
                     try {
