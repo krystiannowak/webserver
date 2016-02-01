@@ -24,7 +24,7 @@ public class IndexHtmlGeneratorTest {
 
         assertTrue("written message should not be empty", html.length() > 0);
 
-        String example = deserialize(readExample());
+        String example = deserialize(readExample()).replaceAll("\r\n", "\n");
 
         assertEquals("generated HTML should match the example", example, html);
     }
